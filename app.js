@@ -66,14 +66,14 @@ io.on('connection', function(socket) {
   });
   socket.on('chat', function(msg) {
     socket.broadcast.emit('chat', msg);
-    mongo.connect(process.env.data, function(err, db) {
+    mongo.connect(process.env.MONGOLAB_URI, function(err, db) {
       var collection = db.collection('chat messages');
       collection.insert({ content: msg }, function(err, o) {
         if (err) {console.warn(err.message); }
         else {console.log('chatt message inserted into db: ' + msg);}
       });
     });
-    mongo.connect(process.env.data, function(err, db) {
+    mongo.connect(process.env.MONGOLAB_URI, function(err, db) {
       var collection = db.collection('chat messages')
       var stream = collection.find().sort({ _id : -1 }).limit(10).stream();
       stream.on('data', function(chat) {socket.emit('chat', chat.content)})
@@ -82,10 +82,10 @@ io.on('connection', function(socket) {
 });
 
 //stream last 1o messages
-mongo.connect(process.env.data, function(err, db) {
-  var collection = db.collection('chat messages')
-  var stream = collection.find().sort({ _id : -1 }).limit(10).stream();
-  stream.on('data', function(chat) {socket.emit('chat', chat.content)})
-})
+// mongo.connect(process.env.data, function(err, db) {
+//   var collection = db.collection('chat messages')
+//   var stream = collection.find().sort({ _id : -1 }).limit(10).stream();
+//   stream.on('data', function(chat) {socket.emit('chat', chat.content)})
+// })
 
 module.exports = app;
