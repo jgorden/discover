@@ -7,9 +7,108 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
-
 var app = express();
-var server = require('./bin/www')
+
+
+
+
+
+
+var debug = require('debug')('chat:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(app.get('port'));
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+
+
+
+
+
+
+
+
+
+
+// var server = require('./bin/www')
 var io = require('socket.io')(server)
 var mongo = require('mongodb').MongoClient;
 // view engine setup
@@ -57,7 +156,7 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-var data = 'mongodb://127.0.0.1/chatters'
+
 //log connections and disconnects
 io.on('connection', function(socket) {
   console.log('a user connected');
@@ -75,11 +174,12 @@ io.on('connection', function(socket) {
     });
     mongo.connect(process.env.MONGOLAB_URI, function(err, db) {
       var collection = db.collection('chat messages')
-      var stream = collection.find().sort({ _id : -1 }).limit(10).stream();
+      var stream = collection.find().sort().limit(10).stream();
       stream.on('data', function(chat) {socket.emit('chat', chat.content)})
     })
   });
 });
+
 
 //stream last 1o messages
 // mongo.connect(process.env.data, function(err, db) {
