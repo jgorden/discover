@@ -160,6 +160,13 @@ app.use(function(err, req, res, next) {
 //log connections and disconnects
 io.on('connection', function(socket) {
   console.log('a user connected');
+  mongo.connect("mongodb://localhost:27017/test", function(err, db) {
+    var collection = db.collection('chat messages')
+    var stream = collection.find().sort().limit(10).stream();
+    console.log('hey its doing it')
+    stream.on('data', function(chat) {socket.emit('chat', chat.content)})
+    console.log('something got emitted')
+  })
   socket.on('disconnect', function() {
     console.log('user disconnected');
   });
@@ -172,11 +179,6 @@ io.on('connection', function(socket) {
         else {console.log('chat message inserted into db: ' + msg);}
       });
     });
-    mongo.connect("mongodb://localhost:27017/test", function(err, db) {
-      var collection = db.collection('chat messages')
-      var stream = collection.find().sort().limit(10).stream();
-      stream.on('data', function(chat) {socket.emit('chat', chat.content)})
-    })
   });
 });
 
